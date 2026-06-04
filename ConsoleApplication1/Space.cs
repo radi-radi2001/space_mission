@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ConsoleApplication1
 {
@@ -11,13 +13,18 @@ namespace ConsoleApplication1
                 Environment.Exit(1);
             }
         }
+
+        static void rec()
+        {
+            rec();
+        }
         public static void Main(string[] args)
         {
+            Dictionary<string, int[,]> astronautsDictionaryPosition = new Dictionary<string, int[,]>();
+            
             string[] astronauts = {"S1", "S2", "S3"};
-            const char destination = 'F';
-            const char openSpace = 'O';
-            const char asteroid = 'X';
-
+            string[] symbolsSpace = {"F", "O", "X"};
+            
             Console.Write("Map rows: ");
             var rowsInput = Convert.ToInt32(Console.ReadLine());
             CheckSize(rowsInput);
@@ -35,11 +42,20 @@ namespace ConsoleApplication1
                 string[] matrixRowInput = Console.ReadLine().Split(new[] {" "}, StringSplitOptions.None);
                 for (int j = 0; j < matrix.GetLength(1); j++)
                 {
+                    if(astronauts.Any(matrixRowInput[j].Contains)){
+                        astronautsDictionaryPosition.Add(matrixRowInput[j], new int[i,j]);
+                    }
+
                     matrix[i, j] = matrixRowInput[j];
                 }
             }
 
-            Console.WriteLine();
+            foreach (var entry in astronautsDictionaryPosition){
+                Console.WriteLine(entry.Key);
+                rec();
+            }
+            
+            Console.WriteLine("DEBUGGER");
         }
     }
 }
