@@ -4,8 +4,29 @@ using System.Linq;
 
 namespace ConsoleApplication1
 {
-    internal class Space
-    {
+    internal class Space {
+        public static string[] astronauts = {"S1", "S2", "S3"};
+        
+        private static bool CheckIfHitAsteroid(int x, int y, string[,] matrix)
+        {
+            if (matrix[x, y].Equals("X"))
+            {
+                return true;
+            }
+
+            return false;
+        }
+        
+        private static bool CheckIfHitAstro(int x, int y, string[,] matrix)
+        {
+            if (astronauts.Any(matrix[x, y].Contains))
+            {
+                return true;
+            }
+
+            return false;
+        }
+        
         static void CheckSize(int  size) 
         {
             if (size < 2 || size > 100)
@@ -13,17 +34,99 @@ namespace ConsoleApplication1
                 Environment.Exit(1);
             }
         }
+        
 
-        static void rec()
+        private static int[] CheckIfAsteroidRight(int x, int y, string[,] matrix)
         {
-            rec();
+            y++;
+            if (matrix.GetLength(1) - 1 < y)
+            {
+                return null;
+            }
+            if (CheckIfHitAsteroid(x, y, matrix)) return null;
+            if (CheckIfHitAstro(x, y, matrix)) return null;
+            
+            int[] xy = { x, y };
+            return xy;
         }
+        private static int[] CheckIfAsteroidLeft(int x, int y, string[,] matrix)
+        {
+            y--;
+            if (y < 0)
+            {
+                return null;
+            }
+            if (CheckIfHitAsteroid(x, y, matrix)) return null;
+            if (CheckIfHitAstro(x, y, matrix)) return null;
+            
+            
+            int[] xy = { x, y };
+            return xy;
+            
+        }
+        private static int[] CheckIfAsteroidDown(int x, int y, string[,] matrix)
+        {
+            x++;
+            if (x > matrix.GetLength(0) - 1)
+            {
+                return null;
+            }
+            if (CheckIfHitAsteroid(x, y, matrix)) return null;
+            if (CheckIfHitAstro(x, y, matrix)) return null;
+            
+
+            int[] xy = {x,y};
+            return xy;
+        }
+        private static int[] CheckIfAsteroidUp(int x, int y, string[,] matrix)
+        {
+            x--;
+            if (x < 0)
+            {
+                return null;
+            }
+            if (CheckIfHitAsteroid(x, y, matrix)) return null;
+            if (CheckIfHitAstro(x, y, matrix)) return null;
+
+            int[] xy = {x,y};
+            return xy;
+        }
+        
+        private static void RecursionTest(int row, int col, string[,] matrix)
+        {
+            int[] right = CheckIfAsteroidRight(row, col, matrix);
+            int[] left = CheckIfAsteroidLeft(row, col, matrix);
+            int[] up = CheckIfAsteroidUp(row, col, matrix);
+            int[] down = CheckIfAsteroidDown(row, col, matrix);
+            
+            if (right != null){
+                Console.WriteLine("RIGHT");
+                RecursionTest(right[0], right[1], matrix);
+            }
+
+            if (left != null)
+            {
+                Console.WriteLine("LEFT");
+                RecursionTest(left[0], left[1], matrix);
+            }
+
+            if (up != null)
+            {
+                Console.WriteLine("UP");
+                RecursionTest(up[0], up[1], matrix);
+            }
+            if (down != null)
+            {
+                Console.WriteLine("DOWN");
+                RecursionTest(down[0], down[1], matrix);
+            }
+            Console.WriteLine("DEBUGGER");
+        }
+        
         public static void Main(string[] args)
         {
-            Dictionary<string, int[,]> astronautsDictionaryPosition = new Dictionary<string, int[,]>();
             
-            string[] astronauts = {"S1", "S2", "S3"};
-            string[] symbolsSpace = {"F", "O", "X"};
+            Dictionary<string, int[,]> astronautsDictionaryPosition = new Dictionary<string, int[,]>();
             
             Console.Write("Map rows: ");
             var rowsInput = Convert.ToInt32(Console.ReadLine());
@@ -37,10 +140,10 @@ namespace ConsoleApplication1
             string[,] matrix = new string[rowsInput, colsInput];
             // Matrix 2 dimension
             Console.WriteLine("Cosmic map: ");
-            for (int i = 0; i < matrix.GetLength(0); i++)
+            for (int i = 0; i < rowsInput; i++)
             {
                 string[] matrixRowInput = Console.ReadLine().Split(new[] {" "}, StringSplitOptions.None);
-                for (int j = 0; j < matrix.GetLength(1); j++)
+                for (int j = 0; j < colsInput; j++)
                 {
                     if(astronauts.Any(matrixRowInput[j].Contains)){
                         astronautsDictionaryPosition.Add(matrixRowInput[j], new int[i,j]);
@@ -49,10 +152,12 @@ namespace ConsoleApplication1
                     matrix[i, j] = matrixRowInput[j];
                 }
             }
-
-            foreach (var entry in astronautsDictionaryPosition){
-                Console.WriteLine(entry.Key);
-                rec();
+            foreach (var entry in astronautsDictionaryPosition)
+            {
+                int astronautX = entry.Value.GetLength(0);
+                int astronautY = entry.Value.GetLength(1);
+                // TODO FINISH the algo
+                RecursionTest(astronautX, astronautY, matrix);
             }
             
             Console.WriteLine("DEBUGGER");
