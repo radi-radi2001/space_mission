@@ -4,40 +4,42 @@ namespace ConsoleApplication1
 {
     internal class Space
     {
-        static Boolean CheckSize(int  size) 
+        static void CheckSize(int  size) 
         {
             if (size < 2 || size > 100)
             {
-                return false;
-            } 
-            return true;
+                Environment.Exit(1);
+            }
         }
         public static void Main(string[] args)
         {
-            int[] rows = { };
-            int[] cols = { };
-            
-            var rowsInput = Convert.ToInt32(Console.ReadLine());
-            var colsInput = Convert.ToInt32(Console.ReadLine());
-            
-            if (CheckSize(rowsInput)){
-                rows = new int[rowsInput];
-            }
-            
-            if (CheckSize(colsInput)){
-                cols = new int [colsInput];
-            }
-            
-            // Matrix 2 dimension
-            for (int i = 0; i < cols.Length; i++)
-            {
-                for (int j = 0; j < rows.Length; j++)
-                {
-                    Console.Write(cols[j] + " ");
-                }
+            string[] astronauts = {"S1", "S2", "S3"};
+            const char destination = 'F';
+            const char openSpace = 'O';
+            const char asteroid = 'X';
 
-                Console.WriteLine("");
+            Console.Write("Map rows: ");
+            var rowsInput = Convert.ToInt32(Console.ReadLine());
+            CheckSize(rowsInput);
+
+            Console.Write("Map columns: ");
+            var colsInput = Convert.ToInt32(Console.ReadLine());
+            CheckSize(colsInput);
+
+
+            string[,] matrix = new string[rowsInput, colsInput];
+            // Matrix 2 dimension
+            Console.WriteLine("Cosmic map: ");
+            for (int i = 0; i < matrix.GetLength(0); i++)
+            {
+                string[] matrixRowInput = Console.ReadLine().Split(new[] {" "}, StringSplitOptions.None);
+                for (int j = 0; j < matrix.GetLength(1); j++)
+                {
+                    matrix[i, j] = matrixRowInput[j];
+                }
             }
+
+            Console.WriteLine();
         }
     }
 }
