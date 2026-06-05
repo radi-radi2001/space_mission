@@ -1,11 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace ConsoleApplication1
 {
     internal class Space {
-        public static string[] astronauts = {"S1", "S2", "S3"};
+        public static string[] Astronauts = {"S1", "S2", "S3"};
         
         private static bool CheckIfHitAsteroid(int x, int y, string[,] matrix)
         {
@@ -19,7 +20,7 @@ namespace ConsoleApplication1
         
         private static bool CheckIfHitAstro(int x, int y, string[,] matrix)
         {
-            if (astronauts.Any(matrix[x, y].Contains))
+            if (Astronauts.Any(matrix[x, y].Contains))
             {
                 return true;
             }
@@ -94,6 +95,7 @@ namespace ConsoleApplication1
         
         private static void RecursionTest(int row, int col, string[,] matrix)
         {
+            Queue queue = new Queue();
             int[] right = CheckIfAsteroidRight(row, col, matrix);
             int[] left = CheckIfAsteroidLeft(row, col, matrix);
             int[] up = CheckIfAsteroidUp(row, col, matrix);
@@ -145,7 +147,7 @@ namespace ConsoleApplication1
                 string[] matrixRowInput = Console.ReadLine().Split(new[] {" "}, StringSplitOptions.None);
                 for (int j = 0; j < colsInput; j++)
                 {
-                    if(astronauts.Any(matrixRowInput[j].Contains)){
+                    if(Astronauts.Any(matrixRowInput[j].Contains)){
                         astronautsDictionaryPosition.Add(matrixRowInput[j], new int[i,j]);
                     }
 
