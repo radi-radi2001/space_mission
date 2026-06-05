@@ -34,7 +34,7 @@ namespace ConsoleApplication1
         }
         
 
-        private static int[] CheckIfAsteroidRight(int x, int y, string[,] matrix)
+        private static Tuple<int, int> CheckIfAsteroidRight(int x, int y, string[,] matrix)
         {
             y++;
             if (matrix.GetLength(1) - 1 < y)
@@ -44,10 +44,9 @@ namespace ConsoleApplication1
             if (CheckIfHitAsteroid(x, y, matrix)) return null;
             if (CheckIfHitAstro(x, y, matrix)) return null;
             
-            int[] xy = { x, y };
-            return xy;
+            return new Tuple<int, int>(x,y);
         }
-        private static int[] CheckIfAsteroidLeft(int x, int y, string[,] matrix)
+        private static Tuple<int, int> CheckIfAsteroidLeft(int x, int y, string[,] matrix)
         {
             y--;
             if (y < 0)
@@ -58,11 +57,10 @@ namespace ConsoleApplication1
             if (CheckIfHitAstro(x, y, matrix)) return null;
             
             
-            int[] xy = { x, y };
-            return xy;
+            return  new Tuple<int, int>(x,y);
             
         }
-        private static int[] CheckIfAsteroidDown(int x, int y, string[,] matrix)
+        private static Tuple<int, int> CheckIfAsteroidDown(int x, int y, string[,] matrix)
         {
             x++;
             if (x > matrix.GetLength(0) - 1)
@@ -73,10 +71,9 @@ namespace ConsoleApplication1
             if (CheckIfHitAstro(x, y, matrix)) return null;
             
 
-            int[] xy = {x,y};
-            return xy;
+            return  new Tuple<int, int>(x,y);
         }
-        private static int[] CheckIfAsteroidUp(int x, int y, string[,] matrix)
+        private static Tuple<int, int> CheckIfAsteroidUp(int x, int y, string[,] matrix)
         {
             x--;
             if (x < 0)
@@ -86,49 +83,45 @@ namespace ConsoleApplication1
             if (CheckIfHitAsteroid(x, y, matrix)) return null;
             if (CheckIfHitAstro(x, y, matrix)) return null;
 
-            int[] xy = {x,y};
-            return xy;
+            return  new Tuple<int, int>(x,y);
         }
         
-        private static void RecursionTest(int row, int col, string[,] matrix)
+        private static void RecursionTest((int x, int y) tuple, string[,] matrix)
         {
-
-            (int Id, string Message, bool IsActive) tuple = (123, "Hello", true);
             Queue queue = new Queue();
-            int[] right = CheckIfAsteroidRight(row, col, matrix);
-            int[] left = CheckIfAsteroidLeft(row, col, matrix);
-            int[] up = CheckIfAsteroidUp(row, col, matrix);
-            int[] down = CheckIfAsteroidDown(row, col, matrix);
+            
+            Tuple<int, int> right = CheckIfAsteroidRight(tuple.x, tuple.y, matrix);
+            Tuple<int, int> left = CheckIfAsteroidLeft(tuple.x, tuple.y, matrix);
+            Tuple<int, int> up = CheckIfAsteroidUp(tuple.x, tuple.y, matrix);
+            Tuple<int, int> down = CheckIfAsteroidDown(tuple.x, tuple.y, matrix);
             
             if (right != null){
                 Console.WriteLine("RIGHT");
-                RecursionTest(right[0], right[1], matrix);
+                RecursionTest((right.Item1,right.Item2), matrix);
             }
 
             if (left != null)
             {
                 Console.WriteLine("LEFT");
-                RecursionTest(left[0], left[1], matrix);
+                RecursionTest((left.Item1,left.Item2), matrix);
             }
 
             if (up != null)
             {
                 Console.WriteLine("UP");
-                RecursionTest(up[0], up[1], matrix);
+                RecursionTest((up.Item1,up.Item2), matrix);
             }
             if (down != null)
             {
                 Console.WriteLine("DOWN");
-                RecursionTest(down[0], down[1], matrix);
+                RecursionTest((down.Item1,down.Item2), matrix);
             }
             Console.WriteLine("DEBUGGER");
         }
         
         public static void Main(string[] args)
         {
-            
-            Dictionary<string, int[,]> astronautsDictionaryPosition = new Dictionary<string, int[,]>();
-            
+            Dictionary<string, (int x, int y)> astronautsDictionaryPosition = new Dictionary<string, (int x, int y)>();
             Console.Write("Map rows: ");
             var rowsInput = Convert.ToInt32(Console.ReadLine());
             CheckSize(rowsInput);
@@ -147,7 +140,7 @@ namespace ConsoleApplication1
                 for (int j = 0; j < colsInput; j++)
                 {
                     if(Astronauts.Any(matrixRowInput[j].Contains)){
-                        astronautsDictionaryPosition.Add(matrixRowInput[j], new int[i,j]);
+                        astronautsDictionaryPosition.Add(matrixRowInput[j], (i,j));
                     }
 
                     matrix[i, j] = matrixRowInput[j];
@@ -155,10 +148,8 @@ namespace ConsoleApplication1
             }
             foreach (var entry in astronautsDictionaryPosition)
             {
-                int astronautX = entry.Value.GetLength(0);
-                int astronautY = entry.Value.GetLength(1);
                 // TODO FINISH the algo
-                RecursionTest(astronautX, astronautY, matrix);
+                RecursionTest(entry.Value, matrix);
             }
             
             Console.WriteLine("DEBUGGER");
