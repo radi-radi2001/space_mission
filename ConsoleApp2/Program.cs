@@ -3,7 +3,8 @@
 namespace ConsoleApplication1
 {
     internal class Space {
-        public static string[] Astronauts = {"S1", "S2", "S3"};
+        private static string[] Astronauts = {"S1", "S2", "S3"};
+        private static (int x, int y) Final;
         
         private static bool CheckIfHitAsteroid(int x, int y, string[,] matrix)
         {
@@ -12,6 +13,15 @@ namespace ConsoleApplication1
                 return true;
             }
 
+            return false;
+        }
+        
+        private static bool CheckIfFinal(int x, int y, string[,] matrix)
+        {
+            if (matrix[x, y].Equals("F"))
+            {
+                return true;
+            }
             return false;
         }
         
@@ -85,43 +95,86 @@ namespace ConsoleApplication1
 
             return  new Tuple<int, int>(x,y);
         }
-        
-        private static void RecursionTest((int x, int y) tuple, string[,] matrix)
+
+        private static void RecursionTest(Tuple<int, int> tuple, string[,] matrix, int pathCounter)
         {
-            Queue queue = new Queue();
+            Queue<Tuple<int, int>> children = new Queue<Tuple<int, int>>();
+            children.Enqueue(tuple); 
             
-            Tuple<int, int> right = CheckIfAsteroidRight(tuple.x, tuple.y, matrix);
-            Tuple<int, int> left = CheckIfAsteroidLeft(tuple.x, tuple.y, matrix);
-            Tuple<int, int> up = CheckIfAsteroidUp(tuple.x, tuple.y, matrix);
-            Tuple<int, int> down = CheckIfAsteroidDown(tuple.x, tuple.y, matrix);
+            List<(int x, int y)> visited = new List<(int x, int y)>();
+            visited.Add((tuple.Item1, tuple.Item2));
             
-            if (right != null){
-                Console.WriteLine("RIGHT");
-                RecursionTest((right.Item1,right.Item2), matrix);
-            }
+            while (children.Count != 0)
+            {
+                var child = children.Peek();
+                Tuple<int, int> right = CheckIfAsteroidRight(child.Item1, child.Item2, matrix);
+                if (right != null)
+                {
+                    if (CheckIfFinal(right.Item1, right.Item2, matrix))
+                    {
+                        break;
+                    }
 
-            if (left != null)
-            {
-                Console.WriteLine("LEFT");
-                RecursionTest((left.Item1,left.Item2), matrix);
-            }
+                    if (!visited.Contains((right.Item1, right.Item2)))
+                    {
+                        Console.WriteLine("RIGHT");
+                        children.Enqueue(right);
+                        visited.Add((right.Item1, right.Item2));
+                    }
+                }
+                Tuple<int, int> left = CheckIfAsteroidLeft(child.Item1, child.Item2, matrix);
+                if (left != null)
+                {
+                    if (CheckIfFinal(left.Item1, left.Item2, matrix))
+                    {
+                        break;
+                    }
+                    if (!visited.Contains((left.Item1, left.Item2)))
+                    {
+                        Console.WriteLine("LEFT");
+                        children.Enqueue(left);
+                        visited.Add((left.Item1, left.Item2));
+                    }
+                }
 
-            if (up != null)
-            {
-                Console.WriteLine("UP");
-                RecursionTest((up.Item1,up.Item2), matrix);
+                Tuple<int, int> up = CheckIfAsteroidUp(child.Item1, child.Item2, matrix);
+                if (up != null)
+                {
+                    if (CheckIfFinal(up.Item1, up.Item2, matrix))
+                    {
+                        break;
+                    }
+                    if (!visited.Contains((up.Item1, up.Item2)))
+                    {
+                        Console.WriteLine("UP");
+                        children.Enqueue(up);
+                        visited.Add((up.Item1, up.Item2));
+                    }
+                }
+
+                Tuple<int, int> down = CheckIfAsteroidDown(child.Item1, child.Item2, matrix);
+                if (down != null)
+                {
+                    if (CheckIfFinal(down.Item1, down.Item2, matrix))
+                    {
+                        break;
+                    }
+                    if (!visited.Contains((down.Item1, down.Item2)))
+                    {
+                        Console.WriteLine("DOWN");
+                        children.Enqueue(down);
+                        visited.Add((down.Item1, down.Item2));
+                    }
+                }
+                children.Dequeue();
             }
-            if (down != null)
-            {
-                Console.WriteLine("DOWN");
-                RecursionTest((down.Item1,down.Item2), matrix);
-            }
-            Console.WriteLine("DEBUGGER");
+            Console.WriteLine(pathCounter);
         }
-        
+
         public static void Main(string[] args)
         {
-            Dictionary<string, (int x, int y)> astronautsDictionaryPosition = new Dictionary<string, (int x, int y)>();
+            Dictionary<string, (int, int)> astronautsDictionaryPosition = new Dictionary<string, (int, int)>();
+            
             Console.Write("Map rows: ");
             var rowsInput = Convert.ToInt32(Console.ReadLine());
             CheckSize(rowsInput);
@@ -143,13 +196,20 @@ namespace ConsoleApplication1
                         astronautsDictionaryPosition.Add(matrixRowInput[j], (i,j));
                     }
 
+                    if (matrixRowInput[j].Equals("F")) {
+                        Final.x = i; 
+                        Final.y = j;
+                    }
+
                     matrix[i, j] = matrixRowInput[j];
                 }
             }
             foreach (var entry in astronautsDictionaryPosition)
             {
                 // TODO FINISH the algo
-                RecursionTest(entry.Value, matrix);
+                int pathCounter = 0;
+                Console.WriteLine($"{entry.Key}: {entry.Value.Item1}, {entry.Value.Item2}");
+                RecursionTest(new Tuple<int, int>(entry.Value.Item1,entry.Value.Item2), matrix, pathCounter);
             }
             
             Console.WriteLine("DEBUGGER");
