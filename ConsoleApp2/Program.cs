@@ -102,15 +102,16 @@ namespace ConsoleApplication1
             children.Enqueue(tuple); 
             
             List<Tuple<int, int>> visited = new List<Tuple<int, int>>();
+            Dictionary<Tuple<int, int>,Tuple<int, int>> path = new Dictionary<Tuple<int, int>,Tuple<int, int>>();
             visited.Add(tuple);
             
             while (children.Count != 0)
             {
                 var child = children.Peek();
-                Tuple<int, int> right = CheckIfAsteroidRight(child.Item1, child.Item2, matrix);
-                Tuple<int, int> left = CheckIfAsteroidLeft(child.Item1, child.Item2, matrix);
-                Tuple<int, int> up = CheckIfAsteroidUp(child.Item1, child.Item2, matrix);
-                Tuple<int, int> down = CheckIfAsteroidDown(child.Item1, child.Item2, matrix);
+                var right = CheckIfAsteroidRight(child.Item1, child.Item2, matrix);
+                var left = CheckIfAsteroidLeft(child.Item1, child.Item2, matrix);
+                var up = CheckIfAsteroidUp(child.Item1, child.Item2, matrix);
+                var down = CheckIfAsteroidDown(child.Item1, child.Item2, matrix);
                 
                 List<Tuple<int, int>> directions =[right, down, left, up];
                 foreach (var direction in directions)
@@ -121,16 +122,18 @@ namespace ConsoleApplication1
                         {
                             break;
                         }
-
                         if (!visited.Contains((direction)))
                         {
                             children.Enqueue(direction);
+                            path.Add(child,direction);
                             visited.Add((direction));
                         }
                     }
                 }
                 children.Dequeue();
             }
+
+            Console.WriteLine("DEbuuger");
         }
 
         public static void Main(string[] args)
