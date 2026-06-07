@@ -4,7 +4,7 @@ namespace ConsoleApplication1
 {
     internal class Space {
         private static string[] Astronauts = {"S1", "S2", "S3"};
-        private static (int x, int y) Final;
+        private static (int x, int y) _final;
         
         private static bool CheckIfHitAsteroid(int x, int y, string[,] matrix)
         {
@@ -101,74 +101,36 @@ namespace ConsoleApplication1
             Queue<Tuple<int, int>> children = new Queue<Tuple<int, int>>();
             children.Enqueue(tuple); 
             
-            List<(int x, int y)> visited = new List<(int x, int y)>();
-            visited.Add((tuple.Item1, tuple.Item2));
+            List<Tuple<int, int>> visited = new List<Tuple<int, int>>();
+            visited.Add(tuple);
             
             while (children.Count != 0)
             {
                 var child = children.Peek();
                 Tuple<int, int> right = CheckIfAsteroidRight(child.Item1, child.Item2, matrix);
-                if (right != null)
-                {
-                    if (CheckIfFinal(right.Item1, right.Item2, matrix))
-                    {
-                        break;
-                    }
-
-                    if (!visited.Contains((right.Item1, right.Item2)))
-                    {
-                        Console.WriteLine("RIGHT");
-                        children.Enqueue(right);
-                        visited.Add((right.Item1, right.Item2));
-                    }
-                }
                 Tuple<int, int> left = CheckIfAsteroidLeft(child.Item1, child.Item2, matrix);
-                if (left != null)
-                {
-                    if (CheckIfFinal(left.Item1, left.Item2, matrix))
-                    {
-                        break;
-                    }
-                    if (!visited.Contains((left.Item1, left.Item2)))
-                    {
-                        Console.WriteLine("LEFT");
-                        children.Enqueue(left);
-                        visited.Add((left.Item1, left.Item2));
-                    }
-                }
-
                 Tuple<int, int> up = CheckIfAsteroidUp(child.Item1, child.Item2, matrix);
-                if (up != null)
-                {
-                    if (CheckIfFinal(up.Item1, up.Item2, matrix))
-                    {
-                        break;
-                    }
-                    if (!visited.Contains((up.Item1, up.Item2)))
-                    {
-                        Console.WriteLine("UP");
-                        children.Enqueue(up);
-                        visited.Add((up.Item1, up.Item2));
-                    }
-                }
-
                 Tuple<int, int> down = CheckIfAsteroidDown(child.Item1, child.Item2, matrix);
-                if (down != null)
+                
+                List<Tuple<int, int>> directions =[right, down, left, up];
+                foreach (var direction in directions)
                 {
-                    if (CheckIfFinal(down.Item1, down.Item2, matrix))
+                    if (direction != null)
                     {
-                        break;
-                    }
-                    if (!visited.Contains((down.Item1, down.Item2)))
-                    {
-                        Console.WriteLine("DOWN");
-                        children.Enqueue(down);
-                        visited.Add((down.Item1, down.Item2));
+                        if (CheckIfFinal(direction.Item1, direction.Item2, matrix))
+                        {
+                            break;
+                        }
+
+                        if (!visited.Contains((direction)))
+                        {
+                            children.Enqueue(direction);
+                            visited.Add((direction));
+                        }
                     }
                 }
                 children.Dequeue();
             }
-            Console.WriteLine(pathCounter);
         }
 
         public static void Main(string[] args)
@@ -187,18 +149,18 @@ namespace ConsoleApplication1
             string[,] matrix = new string[rowsInput, colsInput];
             // Matrix 2 dimension
             Console.WriteLine("Cosmic map: ");
-            for (int i = 0; i < rowsInput; i++)
+            for (var i = 0; i < rowsInput; i++)
             {
                 string[] matrixRowInput = Console.ReadLine().Split(new[] {" "}, StringSplitOptions.None);
-                for (int j = 0; j < colsInput; j++)
+                for (var j = 0; j < colsInput; j++)
                 {
                     if(Astronauts.Any(matrixRowInput[j].Contains)){
                         astronautsDictionaryPosition.Add(matrixRowInput[j], (i,j));
                     }
 
                     if (matrixRowInput[j].Equals("F")) {
-                        Final.x = i; 
-                        Final.y = j;
+                        _final.x = i; 
+                        _final.y = j;
                     }
 
                     matrix[i, j] = matrixRowInput[j];
