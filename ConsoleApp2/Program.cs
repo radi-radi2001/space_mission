@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-namespace ConsoleApplication1
+﻿namespace ConsoleApplication1
 {
     internal class Space {
         private static string[] Astronauts = {"S1", "S2", "S3"};
@@ -190,7 +188,6 @@ namespace ConsoleApplication1
 
         public static void Main(string[] args)
         {
-            Dictionary<string, (int, int)> astronautsDictionaryPosition = new Dictionary<string, (int, int)>();
             List<Astronaut> astronauts = new List<Astronaut>();
             
             Console.Write("Map rows: ");
@@ -223,17 +220,16 @@ namespace ConsoleApplication1
                 }
             }
             
-            SortedDictionary<int, Astronaut> everything = new SortedDictionary<int, Astronaut>();
-            
+            SortedDictionary<int, Astronaut> astronautsByStepsShortestPath = new SortedDictionary<int, Astronaut>();
             foreach (var entry in astronauts)
             {
                 entry.Matrix = matrix.Clone() as string[,]; //HAHAHAHAHHAHA PASS BY REFERENCE, took me some time to release, ...........
                 var dict = searchBFS(entry);
                 SetStepsAndMatrixPath(dict, entry);
-                everything.Add(entry.StepsShortestPath, entry);
+                astronautsByStepsShortestPath.Add(entry.StepsShortestPath, entry);
             }
 
-            foreach (var entry in everything)
+            foreach (var entry in astronautsByStepsShortestPath)
             {
                 if (entry.Value.IsReachFinal)
                 {

@@ -32,29 +32,29 @@ public class Astronaut
     private bool _isReachFinal;
     public bool IsReachFinal
     {
-        get => _isReachFinal;
-        set => _isReachFinal = value;
+        get;
+        set;
     }
 
 
     private int _positionX;
     public int PositionX
     {
-        get => _positionX;
-        set => _positionX = value;
+        get;
+        set;
     }
 
     private int _positionY;
     public int PositionY
     {
-        get => _positionY;
-        set => _positionY = value;
+        get;
+        set;
     }
 
     private int _stepsShortestPath;
     public int StepsShortestPath
     {
-        get => _stepsShortestPath;
-        set => _stepsShortestPath = value;
+        get;
+        set;
     }
 }
