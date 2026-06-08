@@ -1,116 +1,28 @@
-﻿namespace ConsoleApplication1
+﻿namespace SpaceApp
 {
     internal class Space {
-        private static string[] Astronauts = {"S1", "S2", "S3"};
+        private static string[] _astronauts = {"S1", "S2", "S3"};
         private static Tuple<int, int> _final;
         
-        private static bool CheckIfHitAsteroid(int x, int y, string[,] matrix)
-        {
-            if (matrix[x, y].Equals("X"))
-            {
-                return true;
-            }
-
-            return false;
-        }
-        
-        private static bool CheckIfFinal(int x, int y, string[,] matrix)
-        {
-            if (matrix[x, y].Equals("F"))
-            {
-                return true;
-            }
-            return false;
-        }
-        
-        private static bool CheckIfHitAstro(int x, int y, string[,] matrix)
-        {
-            if (Astronauts.Any(matrix[x, y].Contains))
-            {
-                return true;
-            }
-
-            return false;
-        }
-        
-        static void CheckSize(int  size) 
-        {
-            if (size < 2 || size > 100)
-            {
-                Environment.Exit(1);
-            }
-        }
-        
-        private static Tuple<int, int> CheckIfAsteroidRight(int x, int y, string[,] matrix)
-        {
-            y++;
-            if (matrix.GetLength(1) - 1 < y)
-            {
-                return null;
-            }
-            if (CheckIfHitAsteroid(x, y, matrix)) return null;
-            if (CheckIfHitAstro(x, y, matrix)) return null;
-            
-            return new Tuple<int, int>(x,y);
-        }
-        private static Tuple<int, int> CheckIfAsteroidLeft(int x, int y, string[,] matrix)
-        {
-            y--;
-            if (y < 0)
-            {
-                return null;
-            }
-            if (CheckIfHitAsteroid(x, y, matrix)) return null;
-            if (CheckIfHitAstro(x, y, matrix)) return null;
-            
-            
-            return  new Tuple<int, int>(x,y);
-            
-        }
-        private static Tuple<int, int> CheckIfAsteroidDown(int x, int y, string[,] matrix)
-        {
-            x++;
-            if (x > matrix.GetLength(0) - 1)
-            {
-                return null;
-            }
-            if (CheckIfHitAsteroid(x, y, matrix)) return null;
-            if (CheckIfHitAstro(x, y, matrix)) return null;
-            
-
-            return  new Tuple<int, int>(x,y);
-        }
-        private static Tuple<int, int> CheckIfAsteroidUp(int x, int y, string[,] matrix)
-        {
-            x--;
-            if (x < 0)
-            {
-                return null;
-            }
-            if (CheckIfHitAsteroid(x, y, matrix)) return null;
-            if (CheckIfHitAstro(x, y, matrix)) return null;
-
-            return  new Tuple<int, int>(x,y);
-        }
-
-        private static Dictionary<Tuple<int, int>,Tuple<int, int>> searchBFS(Astronaut astronaut)
+        private static void SearchBfs(Astronaut astronaut, HelperFuncs  helperFuncs)
         {
             string [,] matrix = astronaut.Matrix;
             Tuple<int, int> astronautStartPosition = new Tuple<int, int>(astronaut.PositionX, astronaut.PositionY);
             Queue<Tuple<int, int>> storageBfs = new Queue<Tuple<int, int>>();
-            storageBfs.Enqueue(astronautStartPosition); 
-            
             HashSet<Tuple<int, int>> visited = new HashSet<Tuple<int, int>>();
             Dictionary<Tuple<int, int>,Tuple<int, int>> path = new Dictionary<Tuple<int, int>,Tuple<int, int>>();
+            path.Clear();
+            
+            storageBfs.Enqueue(astronautStartPosition);
             visited.Add(astronautStartPosition);
             
             while (storageBfs.Count != 0)
             {
                 var parent = storageBfs.Peek();
-                var right = CheckIfAsteroidRight(parent.Item1, parent.Item2, matrix);
-                var left = CheckIfAsteroidLeft(parent.Item1, parent.Item2, matrix);
-                var up = CheckIfAsteroidUp(parent.Item1, parent.Item2, matrix);
-                var down = CheckIfAsteroidDown(parent.Item1, parent.Item2, matrix);
+                var right = helperFuncs.CheckIfAsteroidRight(parent.Item1, parent.Item2, matrix, _astronauts);
+                var left = helperFuncs.CheckIfAsteroidLeft(parent.Item1, parent.Item2, matrix, _astronauts);
+                var up = helperFuncs.CheckIfAsteroidUp(parent.Item1, parent.Item2, matrix, _astronauts);
+                var down = helperFuncs.CheckIfAsteroidDown(parent.Item1, parent.Item2, matrix, _astronauts);
                 
                 List<Tuple<int, int>> children =[right, down, left, up];
                 
@@ -118,12 +30,13 @@
                 {
                     if (child != null)
                     {
-                        if (CheckIfFinal(child.Item1, child.Item2, matrix))
+                        if (helperFuncs.CheckIfFinal(child.Item1, child.Item2, matrix))
                         {
                             astronaut.IsReachFinal = true;
                             path.Add(child, parent);
                             storageBfs.Clear();
                             visited.Clear();
+                            astronaut.Path = new Dictionary<Tuple<int, int>, Tuple<int, int>>(path);
                             break;
                         }
                         if (!visited.Contains(child))
@@ -140,15 +53,14 @@
                     storageBfs.Dequeue();   
                 }
             }
-
-            return path;
         }
 
-        private static void SetStepsAndMatrixPath(Dictionary<Tuple<int, int>,Tuple<int, int>> path, Astronaut astronaut)
+        private static void SetStepsAndMatrixPath(Astronaut astronaut)
         {
             string[,] matrix = astronaut.Matrix;
             int pathCounter = 0;
             bool reachFinal = astronaut.IsReachFinal;
+            var path = astronaut.Path;
             
             if (reachFinal)
             {
@@ -186,17 +98,34 @@
             }
         }
 
+        private static void PrintForEachAstronautInOrder(SortedDictionary<int, Astronaut> astronautsByStepsShortestPath)
+        {
+            foreach (var entry in astronautsByStepsShortestPath)
+            {
+                if (entry.Value.IsReachFinal)
+                {
+                    Console.WriteLine("Astronaut " + entry.Value.Name + " - Shortest path: " + entry.Value.StepsShortestPath);
+                    PrintMatrix(entry.Value.Matrix);   
+                }
+                else
+                {
+                    Console.WriteLine("Mission failed — Astronaut " + entry.Value.Name + " lost in space! ");
+                }
+            }
+        }
+        
         public static void Main(string[] args)
         {
-            List<Astronaut> astronauts = new List<Astronaut>();
+            var astronauts = new List<Astronaut>();
+            var helperFuncs = new HelperFuncs();
             
             Console.Write("Map rows: ");
             var rowsInput = Convert.ToInt32(Console.ReadLine());
-            CheckSize(rowsInput);
+            helperFuncs.CheckSize(rowsInput);
 
             Console.Write("Map columns: ");
             var colsInput = Convert.ToInt32(Console.ReadLine());
-            CheckSize(colsInput);
+            helperFuncs.CheckSize(colsInput);
 
 
             string[,] matrix = new string[rowsInput, colsInput];
@@ -207,7 +136,7 @@
                 string[] matrixRowInput = Console.ReadLine().Split(new[] {" "}, StringSplitOptions.None);
                 for (var j = 0; j < colsInput; j++)
                 {
-                    if(Astronauts.Any(matrixRowInput[j].Contains)){
+                    if(_astronauts.Any(matrixRowInput[j].Contains)){
                         astronauts.Add(new Astronaut(matrixRowInput[j], false , i, j, 0));
                     }
 
@@ -224,23 +153,13 @@
             foreach (var entry in astronauts)
             {
                 entry.Matrix = matrix.Clone() as string[,]; //HAHAHAHAHHAHA PASS BY REFERENCE, took me some time to release, ...........
-                var dict = searchBFS(entry);
-                SetStepsAndMatrixPath(dict, entry);
+                SearchBfs(entry, helperFuncs);
+                SetStepsAndMatrixPath(entry);
                 astronautsByStepsShortestPath.Add(entry.StepsShortestPath, entry);
+                
             }
 
-            foreach (var entry in astronautsByStepsShortestPath)
-            {
-                if (entry.Value.IsReachFinal)
-                {
-                    Console.WriteLine("Astronaut " + entry.Value.Name + " - Shortest path: " + entry.Value.StepsShortestPath);
-                    PrintMatrix(entry.Value.Matrix);   
-                }
-                else
-                {
-                    Console.WriteLine("Mission failed — Astronaut " + entry.Value.Name + " lost in space! ");
-                }
-            }
+            PrintForEachAstronautInOrder(astronautsByStepsShortestPath);
         }
     }
 }
