@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
+using System.Text;
 
 /* Overall what is doing. We accept data from input row by row. We store it in matrix. Then with BFS search, we try to find the final
  point by checking for each node, the children. We check for visited so we don't go back,  we store the path because when we reach the final if there's even.
@@ -102,37 +103,47 @@ namespace SpaceApp
             astronaut.StepsShortestPath = pathCounter;
         }
 
-        private static void PrintMatrix(string[,] matrix)
+        private static StringBuilder PrintMatrix(string[,] matrix, StringBuilder sb, bool reachFinal)
         {
-            int rowLength = matrix.GetLength(0);
-            int colLength = matrix.GetLength(1);
-            for (int i = 0; i < rowLength; i++)
+            if (reachFinal)
             {
-                for (int j = 0; j < colLength; j++)
+                int rowLength = matrix.GetLength(0);
+                int colLength = matrix.GetLength(1);
+                for (int i = 0; i < rowLength; i++)
                 {
-                    Console.Write(matrix[i, j] + " ");
-                }
+                    for (int j = 0; j < colLength; j++)
+                    {
+                        sb.Append(matrix[i, j] + " ");
+                        Console.Write(matrix[i, j] + " ");
+                    }
 
-                Console.WriteLine();
+                    sb.AppendLine();
+                    Console.WriteLine();
+                }
             }
+
+            return sb;
         }
 
-        private static void PrintForEachAstronautInOrder(SortedDictionary<int, Astronaut> astronautsByStepsShortestPath)
+        private static StringBuilder PrintForEachAstronautInOrder(SortedDictionary<int, Astronaut> astronautsByStepsShortestPath)
         {
+            var sb = new StringBuilder();
             // For each astronaut we print the matrix, already sorted because of SortedDictionary
             foreach (var entry in astronautsByStepsShortestPath)
             {
+                string title = "Mission failed — Astronaut " + entry.Value.Name + " lost in space!";
                 if (entry.Value.IsReachFinal)
                 {
-                    Console.WriteLine("Astronaut " + entry.Value.Name + " - Shortest path: " +
-                                      entry.Value.StepsShortestPath);
-                    PrintMatrix(entry.Value.Matrix);
+                    title = "Astronaut " + entry.Value.Name + " - Shortest path: " +
+                            entry.Value.StepsShortestPath;
                 }
-                else
-                {
-                    Console.WriteLine("Mission failed — Astronaut " + entry.Value.Name + " lost in space! ");
-                }
+                sb.Append(title);
+                sb.AppendLine();
+                Console.WriteLine(title);
+                sb = PrintMatrix(entry.Value.Matrix, sb, entry.Value.IsReachFinal);
             }
+
+            return sb;
         }
 
         public static void Main(string[] args)
@@ -180,45 +191,43 @@ namespace SpaceApp
                 SearchBfs(entry, helperFuncs);
                 SetStepsAndMatrixPath(entry);
                 astronautsByStepsShortestPath.Add(entry.StepsShortestPath, entry);
-
             }
-
+            
             // finale part
-            PrintForEachAstronautInOrder(astronautsByStepsShortestPath);
-
-            SendEmail();
+            SendEmail(astronautsByStepsShortestPath);
         }
 
-        private static void SendEmail()
+        private static void SendEmail(SortedDictionary<int, Astronaut> astronautsByStepsShortestPath)
         {
-
-            SmtpClient mySmtpClient = new SmtpClient("my.smtp.exampleserver.net");
-
+            var senderEmail = Console.ReadLine();
+            var senderPassword = Console.ReadLine();
+            var receiverEmail = Console.ReadLine();
+            
+            SmtpClient smtpObj = new SmtpClient("smtp.gmail.com");
+            
             // set smtp-client with basicAuthentication
-            mySmtpClient.UseDefaultCredentials = false;
-            NetworkCredential basicAuthenticationInfo = new NetworkCredential("username", "password");
-            mySmtpClient.Credentials = basicAuthenticationInfo;
+            smtpObj.Port = 587;
+            smtpObj.EnableSsl = true;
+            smtpObj.UseDefaultCredentials = false;
+            NetworkCredential basicAuthenticationInfo = new NetworkCredential(senderEmail, senderPassword);
+            smtpObj.Credentials = basicAuthenticationInfo;
 
-            // add from,to mailaddresses
-            MailAddress from = new MailAddress("radoslavkirilov2001@gmail.com", "TestFromName");
-            MailAddress to = new MailAddress("radi_radi2001@abv.bg", "TestToName");
+            
+            MailAddress from = new MailAddress(senderEmail, senderEmail);
+            MailAddress to = new MailAddress(receiverEmail,receiverEmail);
             MailMessage myMail = new MailMessage(from, to);
 
-            // add ReplyTo
-            // replyTo = new MailAddress("reply@example.com");
-            // myMail.ReplyToList.Add(replyTo);
-
             // set subject and encoding
-            myMail.Subject = "Test message";
-            myMail.SubjectEncoding = System.Text.Encoding.UTF8;
+            myMail.Subject = "Space Game Hitachi something";
+            myMail.SubjectEncoding = Encoding.UTF8;
 
             // set body-message and encoding
-            myMail.Body = "<b>Test Mail</b><br>using <b>HTML</b>.";
-            myMail.BodyEncoding = System.Text.Encoding.UTF8;
+            myMail.Body = PrintForEachAstronautInOrder(astronautsByStepsShortestPath).ToString();
+            myMail.BodyEncoding = Encoding.UTF8;
             // text or html
-            myMail.IsBodyHtml = true;
+            myMail.IsBodyHtml = false;
 
-            mySmtpClient.Send(myMail);
+            smtpObj.Send(myMail);
         }
     }
 }
