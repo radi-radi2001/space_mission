@@ -1,31 +1,46 @@
-﻿namespace SpaceApp
+﻿using System.Net;
+using System.Net.Mail;
+using System.Net.Mime;
+
+/* Overall what is doing. We accept data from input row by row. We store it in matrix. Then with BFS search, we try to find the final
+ point by checking for each node, the children. We check for visited so we don't go back,  we store the path because when we reach the final if there's even.
+ we don't know how we ended up there. So we keep track for each node the parent. Then we create the path from beginning to end + number of steps. Get the shortest path
+ between astronauts, print and finito.
+ */
+
+
+namespace SpaceApp
 {
-    internal class Space {
-        private static string[] _astronauts = {"S1", "S2", "S3"};
+    internal class Space
+    {
+        private static string[] _astronauts = { "S1", "S2", "S3" };
         private static Tuple<int, int> _final;
-        
-        private static void SearchBfs(Astronaut astronaut, HelperFuncs  helperFuncs)
+
+        private static void SearchBfs(Astronaut astronaut, HelperFuncs helperFuncs)
         {
-            string [,] matrix = astronaut.Matrix;
+            string[,] matrix = astronaut.Matrix;
             Tuple<int, int> astronautStartPosition = new Tuple<int, int>(astronaut.PositionX, astronaut.PositionY);
             Queue<Tuple<int, int>> storageBfs = new Queue<Tuple<int, int>>();
             HashSet<Tuple<int, int>> visited = new HashSet<Tuple<int, int>>();
-            Dictionary<Tuple<int, int>,Tuple<int, int>> path = new Dictionary<Tuple<int, int>,Tuple<int, int>>();
+            Dictionary<Tuple<int, int>, Tuple<int, int>> path = new Dictionary<Tuple<int, int>, Tuple<int, int>>();
             path.Clear();
-            
+
             storageBfs.Enqueue(astronautStartPosition);
             visited.Add(astronautStartPosition);
-            
+
             while (storageBfs.Count != 0)
             {
                 var parent = storageBfs.Peek();
+
+                // Check the 4 directions for possible open space
                 var right = helperFuncs.CheckIfAsteroidRight(parent.Item1, parent.Item2, matrix, _astronauts);
                 var left = helperFuncs.CheckIfAsteroidLeft(parent.Item1, parent.Item2, matrix, _astronauts);
                 var up = helperFuncs.CheckIfAsteroidUp(parent.Item1, parent.Item2, matrix, _astronauts);
                 var down = helperFuncs.CheckIfAsteroidDown(parent.Item1, parent.Item2, matrix, _astronauts);
-                
-                List<Tuple<int, int>> children =[right, down, left, up];
-                
+
+                List<Tuple<int, int>> children = [right, down, left, up];
+
+                // Check if each child(Open space) from parent, has reached final, if not add him to visited and to the queue so we can check its children etc.  
                 foreach (var child in children)
                 {
                     if (child != null)
@@ -39,6 +54,7 @@
                             astronaut.Path = new Dictionary<Tuple<int, int>, Tuple<int, int>>(path);
                             break;
                         }
+
                         if (!visited.Contains(child))
                         {
                             path.Add(child, parent);
@@ -48,9 +64,10 @@
                     }
                 }
 
+                // if from start no children it throws error, could put some error handling ?
                 if (storageBfs.Count != 0)
                 {
-                    storageBfs.Dequeue();   
+                    storageBfs.Dequeue();
                 }
             }
         }
@@ -61,11 +78,11 @@
             int pathCounter = 0;
             bool reachFinal = astronaut.IsReachFinal;
             var path = astronaut.Path;
-            
+
             if (reachFinal)
             {
                 var current = _final;
-
+                // iterate from final point to the start to create the path from starts *
                 while (current.Item1 != astronaut.PositionX
                        || current.Item2 != astronaut.PositionY)
                 {
@@ -80,8 +97,9 @@
                     matrix[current.Item1, current.Item2] = "*";
                 }
             }
+
             astronaut.Matrix = matrix;
-            astronaut.StepsShortestPath =  pathCounter;
+            astronaut.StepsShortestPath = pathCounter;
         }
 
         private static void PrintMatrix(string[,] matrix)
@@ -94,18 +112,21 @@
                 {
                     Console.Write(matrix[i, j] + " ");
                 }
+
                 Console.WriteLine();
             }
         }
 
         private static void PrintForEachAstronautInOrder(SortedDictionary<int, Astronaut> astronautsByStepsShortestPath)
         {
+            // For each astronaut we print the matrix, already sorted because of SortedDictionary
             foreach (var entry in astronautsByStepsShortestPath)
             {
                 if (entry.Value.IsReachFinal)
                 {
-                    Console.WriteLine("Astronaut " + entry.Value.Name + " - Shortest path: " + entry.Value.StepsShortestPath);
-                    PrintMatrix(entry.Value.Matrix);   
+                    Console.WriteLine("Astronaut " + entry.Value.Name + " - Shortest path: " +
+                                      entry.Value.StepsShortestPath);
+                    PrintMatrix(entry.Value.Matrix);
                 }
                 else
                 {
@@ -113,12 +134,13 @@
                 }
             }
         }
-        
+
         public static void Main(string[] args)
         {
             var astronauts = new List<Astronaut>();
             var helperFuncs = new HelperFuncs();
-            
+
+            // Input for matrix size - X and Y
             Console.Write("Map rows: ");
             var rowsInput = Convert.ToInt32(Console.ReadLine());
             helperFuncs.CheckSize(rowsInput);
@@ -129,15 +151,16 @@
 
 
             string[,] matrix = new string[rowsInput, colsInput];
-            // Matrix 2 dimension
             Console.WriteLine("Cosmic map: ");
+            // iterate for each row we accept line of data, we add it to the matrix then we go to next row and same thing again until we hit size of rows
             for (var i = 0; i < rowsInput; i++)
             {
-                string[] matrixRowInput = Console.ReadLine().Split(new[] {" "}, StringSplitOptions.None);
+                string[] matrixRowInput = Console.ReadLine().Split(new[] { " " }, StringSplitOptions.None);
                 for (var j = 0; j < colsInput; j++)
                 {
-                    if(_astronauts.Any(matrixRowInput[j].Contains)){
-                        astronauts.Add(new Astronaut(matrixRowInput[j], false , i, j, 0));
+                    if (_astronauts.Any(matrixRowInput[j].Contains))
+                    {
+                        astronauts.Add(new Astronaut(matrixRowInput[j], false, i, j, 0));
                     }
 
                     if (matrixRowInput[j].Equals("F"))
@@ -148,18 +171,54 @@
                     matrix[i, j] = matrixRowInput[j];
                 }
             }
-            
+
             SortedDictionary<int, Astronaut> astronautsByStepsShortestPath = new SortedDictionary<int, Astronaut>();
             foreach (var entry in astronauts)
             {
-                entry.Matrix = matrix.Clone() as string[,]; //HAHAHAHAHHAHA PASS BY REFERENCE, took me some time to release, ...........
+                entry.Matrix =
+                    matrix.Clone() as string[,]; //HAHAHAHAHHAHA PASS BY REFERENCE, took me some time to release, ...........
                 SearchBfs(entry, helperFuncs);
                 SetStepsAndMatrixPath(entry);
                 astronautsByStepsShortestPath.Add(entry.StepsShortestPath, entry);
-                
+
             }
 
+            // finale part
             PrintForEachAstronautInOrder(astronautsByStepsShortestPath);
+
+            SendEmail();
+        }
+
+        private static void SendEmail()
+        {
+
+            SmtpClient mySmtpClient = new SmtpClient("my.smtp.exampleserver.net");
+
+            // set smtp-client with basicAuthentication
+            mySmtpClient.UseDefaultCredentials = false;
+            NetworkCredential basicAuthenticationInfo = new NetworkCredential("username", "password");
+            mySmtpClient.Credentials = basicAuthenticationInfo;
+
+            // add from,to mailaddresses
+            MailAddress from = new MailAddress("radoslavkirilov2001@gmail.com", "TestFromName");
+            MailAddress to = new MailAddress("radi_radi2001@abv.bg", "TestToName");
+            MailMessage myMail = new MailMessage(from, to);
+
+            // add ReplyTo
+            // replyTo = new MailAddress("reply@example.com");
+            // myMail.ReplyToList.Add(replyTo);
+
+            // set subject and encoding
+            myMail.Subject = "Test message";
+            myMail.SubjectEncoding = System.Text.Encoding.UTF8;
+
+            // set body-message and encoding
+            myMail.Body = "<b>Test Mail</b><br>using <b>HTML</b>.";
+            myMail.BodyEncoding = System.Text.Encoding.UTF8;
+            // text or html
+            myMail.IsBodyHtml = true;
+
+            mySmtpClient.Send(myMail);
         }
     }
 }

@@ -1,0 +1,10 @@
+﻿# Rider
+.idea/
+
+# Build output
+bin/
+obj/
+
+# User-specific settings
+*.user
+*.DotSettings.user
