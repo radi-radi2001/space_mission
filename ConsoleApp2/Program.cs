@@ -4,7 +4,7 @@ namespace ConsoleApplication1
 {
     internal class Space {
         private static string[] Astronauts = {"S1", "S2", "S3"};
-        private static (int x, int y) _final;
+        private static Tuple<int, int> _final;
         
         private static bool CheckIfHitAsteroid(int x, int y, string[,] matrix)
         {
@@ -96,44 +96,85 @@ namespace ConsoleApplication1
             return  new Tuple<int, int>(x,y);
         }
 
-        private static void RecursionTest(Tuple<int, int> tuple, string[,] matrix, int pathCounter)
+        private static Dictionary<Tuple<int, int>,Tuple<int, int>> searchBFS(Tuple<int, int> tuple, string[,] matrix)
         {
-            Queue<Tuple<int, int>> children = new Queue<Tuple<int, int>>();
-            children.Enqueue(tuple); 
+            Queue<Tuple<int, int>> storageBfs = new Queue<Tuple<int, int>>();
+            storageBfs.Enqueue(tuple); 
             
             List<Tuple<int, int>> visited = new List<Tuple<int, int>>();
             Dictionary<Tuple<int, int>,Tuple<int, int>> path = new Dictionary<Tuple<int, int>,Tuple<int, int>>();
             visited.Add(tuple);
             
-            while (children.Count != 0)
+            while (storageBfs.Count != 0)
             {
-                var child = children.Peek();
-                var right = CheckIfAsteroidRight(child.Item1, child.Item2, matrix);
-                var left = CheckIfAsteroidLeft(child.Item1, child.Item2, matrix);
-                var up = CheckIfAsteroidUp(child.Item1, child.Item2, matrix);
-                var down = CheckIfAsteroidDown(child.Item1, child.Item2, matrix);
+                var parent = storageBfs.Peek();
+                var right = CheckIfAsteroidRight(parent.Item1, parent.Item2, matrix);
+                var left = CheckIfAsteroidLeft(parent.Item1, parent.Item2, matrix);
+                var up = CheckIfAsteroidUp(parent.Item1, parent.Item2, matrix);
+                var down = CheckIfAsteroidDown(parent.Item1, parent.Item2, matrix);
                 
-                List<Tuple<int, int>> directions =[right, down, left, up];
-                foreach (var direction in directions)
+                List<Tuple<int, int>> children =[right, down, left, up];
+                
+                foreach (var child in children)
                 {
-                    if (direction != null)
+                    if (child != null)
                     {
-                        if (CheckIfFinal(direction.Item1, direction.Item2, matrix))
+                        if (CheckIfFinal(child.Item1, child.Item2, matrix))
                         {
+                            path.Add(child, parent);
+                            storageBfs.Clear();
+                            visited.Clear();
                             break;
                         }
-                        if (!visited.Contains((direction)))
+                        if (!visited.Contains(child))
                         {
-                            children.Enqueue(direction);
-                            path.Add(child,direction);
-                            visited.Add((direction));
+                            path.Add(child, parent);
+                            storageBfs.Enqueue(child);
+                            visited.Add(child);
                         }
                     }
                 }
-                children.Dequeue();
+
+                if (storageBfs.Count != 0)
+                {
+                    storageBfs.Dequeue();   
+                }
             }
 
-            Console.WriteLine("DEbuuger");
+            return path;
+        }
+
+        private static int getSteps(Dictionary<Tuple<int, int>,Tuple<int, int>> path, string[,] matrix, Tuple<int, int> astronaut, int pathCounter)
+        {
+            var current = _final;
+            
+            while (current.Item1 != astronaut.Item1
+                   || current.Item2 != astronaut.Item2)
+            {
+                pathCounter++;
+                var parent = path[current];
+                current = parent;
+                if (current.Equals(astronaut))
+                {
+                    break;
+                }
+                matrix[current.Item1, current.Item2] = "*";
+            }
+            return pathCounter;
+        }
+
+        private static void PrintMatrix(string[,] matrix)
+        {
+            int rowLength = matrix.GetLength(0);
+            int colLength = matrix.GetLength(1);
+            for (int i = 0; i < rowLength; i++)
+            {
+                for (int j = 0; j < colLength; j++)
+                {
+                    Console.Write(matrix[i, j] + " ");
+                }
+                Console.WriteLine();
+            }
         }
 
         public static void Main(string[] args)
@@ -161,9 +202,9 @@ namespace ConsoleApplication1
                         astronautsDictionaryPosition.Add(matrixRowInput[j], (i,j));
                     }
 
-                    if (matrixRowInput[j].Equals("F")) {
-                        _final.x = i; 
-                        _final.y = j;
+                    if (matrixRowInput[j].Equals("F"))
+                    {
+                        _final = new Tuple<int, int>(i, j);
                     }
 
                     matrix[i, j] = matrixRowInput[j];
@@ -171,13 +212,13 @@ namespace ConsoleApplication1
             }
             foreach (var entry in astronautsDictionaryPosition)
             {
-                // TODO FINISH the algo
-                int pathCounter = 0;
-                Console.WriteLine($"{entry.Key}: {entry.Value.Item1}, {entry.Value.Item2}");
-                RecursionTest(new Tuple<int, int>(entry.Value.Item1,entry.Value.Item2), matrix, pathCounter);
+                var matrixCopy = matrix.Clone() as string[,]; //HAHAHAHAHHAHA PASS BY REFERENCE, took me some time to release, ...........
+                var pathCounter = 0;
+                var dict = searchBFS(new Tuple<int, int>(entry.Value.Item1,entry.Value.Item2), matrixCopy);
+                pathCounter = getSteps(dict, matrixCopy, new Tuple<int, int>(entry.Value.Item1,entry.Value.Item2), pathCounter);
+                Console.WriteLine("Astronaut " + entry.Key + " - Shortest path: " + pathCounter);
+                PrintMatrix(matrixCopy);
             }
-            
-            Console.WriteLine("DEBUGGER");
         }
     }
 }
