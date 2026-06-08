@@ -210,14 +210,22 @@ namespace ConsoleApplication1
                     matrix[i, j] = matrixRowInput[j];
                 }
             }
+            
+            SortedDictionary<int, Tuple<string, string[,]>> everything = new SortedDictionary<int, Tuple<string, string[,]>>();
+            
             foreach (var entry in astronautsDictionaryPosition)
             {
                 var matrixCopy = matrix.Clone() as string[,]; //HAHAHAHAHHAHA PASS BY REFERENCE, took me some time to release, ...........
                 var pathCounter = 0;
                 var dict = searchBFS(new Tuple<int, int>(entry.Value.Item1,entry.Value.Item2), matrixCopy);
                 pathCounter = getSteps(dict, matrixCopy, new Tuple<int, int>(entry.Value.Item1,entry.Value.Item2), pathCounter);
-                Console.WriteLine("Astronaut " + entry.Key + " - Shortest path: " + pathCounter);
-                PrintMatrix(matrixCopy);
+                everything.Add(pathCounter, new Tuple<string, string[,]>(entry.Key, matrixCopy));
+            }
+
+            foreach (var entry in everything)
+            {
+                Console.WriteLine("Astronaut " + entry.Value.Item1 + " - Shortest path: " + entry.Key);
+                PrintMatrix(entry.Value.Item2);
             }
         }
     }
