@@ -186,8 +186,7 @@ namespace SpaceApp
             SortedDictionary<int, Astronaut> astronautsByStepsShortestPath = new SortedDictionary<int, Astronaut>();
             foreach (var entry in astronauts)
             {
-                entry.Matrix =
-                    matrix.Clone() as string[,]; //HAHAHAHAHHAHA PASS BY REFERENCE, took me some time to release, ...........
+                entry.Matrix = matrix.Clone() as string[,]; //HAHAHAHAHHAHA PASS BY REFERENCE, took me some time to release, ...........
                 SearchBfs(entry, helperFuncs);
                 SetStepsAndMatrixPath(entry);
                 astronautsByStepsShortestPath.Add(entry.StepsShortestPath, entry);
@@ -211,7 +210,7 @@ namespace SpaceApp
             smtpObj.UseDefaultCredentials = false;
             NetworkCredential basicAuthenticationInfo = new NetworkCredential(senderEmail, senderPassword);
             smtpObj.Credentials = basicAuthenticationInfo;
-
+    
             
             MailAddress from = new MailAddress(senderEmail, senderEmail);
             MailAddress to = new MailAddress(receiverEmail,receiverEmail);
