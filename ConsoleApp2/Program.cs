@@ -43,7 +43,6 @@ namespace ConsoleApplication1
             }
         }
         
-
         private static Tuple<int, int> CheckIfAsteroidRight(int x, int y, string[,] matrix)
         {
             y++;
@@ -96,14 +95,16 @@ namespace ConsoleApplication1
             return  new Tuple<int, int>(x,y);
         }
 
-        private static Dictionary<Tuple<int, int>,Tuple<int, int>> searchBFS(Tuple<int, int> tuple, string[,] matrix, bool reachFinal)
+        private static Dictionary<Tuple<int, int>,Tuple<int, int>> searchBFS(Astronaut astronaut)
         {
+            string [,] matrix = astronaut.Matrix;
+            Tuple<int, int> astronautStartPosition = new Tuple<int, int>(astronaut.PositionX, astronaut.PositionY);
             Queue<Tuple<int, int>> storageBfs = new Queue<Tuple<int, int>>();
-            storageBfs.Enqueue(tuple); 
+            storageBfs.Enqueue(astronautStartPosition); 
             
             List<Tuple<int, int>> visited = new List<Tuple<int, int>>();
             Dictionary<Tuple<int, int>,Tuple<int, int>> path = new Dictionary<Tuple<int, int>,Tuple<int, int>>();
-            visited.Add(tuple);
+            visited.Add(astronautStartPosition);
             
             while (storageBfs.Count != 0)
             {
@@ -121,7 +122,7 @@ namespace ConsoleApplication1
                     {
                         if (CheckIfFinal(child.Item1, child.Item2, matrix))
                         {
-                            reachFinal = true;
+                            astronaut.IsReachFinal = true;
                             path.Add(child, parent);
                             storageBfs.Clear();
                             visited.Clear();
@@ -145,19 +146,23 @@ namespace ConsoleApplication1
             return path;
         }
 
-        private static int GetSteps(Dictionary<Tuple<int, int>,Tuple<int, int>> path, string[,] matrix, Tuple<int, int> astronaut, int pathCounter, bool reachFinal)
+        private static void SetStepsAndMatrixPath(Dictionary<Tuple<int, int>,Tuple<int, int>> path, Astronaut astronaut)
         {
+            string[,] matrix = astronaut.Matrix;
+            int pathCounter = 0;
+            bool reachFinal = astronaut.IsReachFinal;
+            
             if (reachFinal)
             {
                 var current = _final;
 
-                while (current.Item1 != astronaut.Item1
-                       || current.Item2 != astronaut.Item2)
+                while (current.Item1 != astronaut.PositionX
+                       || current.Item2 != astronaut.PositionY)
                 {
                     pathCounter++;
                     var parent = path[current];
                     current = parent;
-                    if (current.Equals(astronaut))
+                    if (current.Equals(new Tuple<int, int>(astronaut.PositionX, astronaut.PositionY)))
                     {
                         break;
                     }
@@ -165,7 +170,8 @@ namespace ConsoleApplication1
                     matrix[current.Item1, current.Item2] = "*";
                 }
             }
-            return pathCounter;
+            astronaut.Matrix = matrix;
+            astronaut.StepsShortestPath =  pathCounter;
         }
 
         private static void PrintMatrix(string[,] matrix)
@@ -185,6 +191,7 @@ namespace ConsoleApplication1
         public static void Main(string[] args)
         {
             Dictionary<string, (int, int)> astronautsDictionaryPosition = new Dictionary<string, (int, int)>();
+            List<Astronaut> astronauts = new List<Astronaut>();
             
             Console.Write("Map rows: ");
             var rowsInput = Convert.ToInt32(Console.ReadLine());
@@ -204,7 +211,7 @@ namespace ConsoleApplication1
                 for (var j = 0; j < colsInput; j++)
                 {
                     if(Astronauts.Any(matrixRowInput[j].Contains)){
-                        astronautsDictionaryPosition.Add(matrixRowInput[j], (i,j));
+                        astronauts.Add(new Astronaut(matrixRowInput[j], false , i, j, 0));
                     }
 
                     if (matrixRowInput[j].Equals("F"))
@@ -216,29 +223,26 @@ namespace ConsoleApplication1
                 }
             }
             
-            SortedDictionary<int, Tuple<string, string[,], bool>> everything = new SortedDictionary<int, Tuple<string, string[,], bool>>();
+            SortedDictionary<int, Astronaut> everything = new SortedDictionary<int, Astronaut>();
             
-            foreach (var entry in astronautsDictionaryPosition)
+            foreach (var entry in astronauts)
             {
-                Astronaut obj = new Astronaut();
-                bool reachFinal = false;
-                var matrixCopy = matrix.Clone() as string[,]; //HAHAHAHAHHAHA PASS BY REFERENCE, took me some time to release, ...........
-                var pathCounter = 0;
-                var dict = searchBFS(new Tuple<int, int>(entry.Value.Item1,entry.Value.Item2), matrixCopy, reachFinal);
-                pathCounter = GetSteps(dict, matrixCopy, new Tuple<int, int>(entry.Value.Item1,entry.Value.Item2), pathCounter, reachFinal);
-                everything.Add(pathCounter, new Tuple<string, string[,], bool>(entry.Key, matrixCopy, reachFinal));
+                entry.Matrix = matrix.Clone() as string[,]; //HAHAHAHAHHAHA PASS BY REFERENCE, took me some time to release, ...........
+                var dict = searchBFS(entry);
+                SetStepsAndMatrixPath(dict, entry);
+                everything.Add(entry.StepsShortestPath, entry);
             }
 
             foreach (var entry in everything)
             {
-                if (entry.Value.Item3)
+                if (entry.Value.IsReachFinal)
                 {
-                    Console.WriteLine("Astronaut " + entry.Value.Item1 + " - Shortest path: " + entry.Key);
-                    PrintMatrix(entry.Value.Item2);   
+                    Console.WriteLine("Astronaut " + entry.Value.Name + " - Shortest path: " + entry.Value.StepsShortestPath);
+                    PrintMatrix(entry.Value.Matrix);   
                 }
                 else
                 {
-                    Console.WriteLine("Mission failed — Astronaut " + entry.Value.Item1 + " lost in space! ");
+                    Console.WriteLine("Mission failed — Astronaut " + entry.Value.Name + " lost in space! ");
                 }
             }
         }
