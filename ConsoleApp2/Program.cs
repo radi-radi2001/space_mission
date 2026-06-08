@@ -100,7 +100,7 @@
             Queue<Tuple<int, int>> storageBfs = new Queue<Tuple<int, int>>();
             storageBfs.Enqueue(astronautStartPosition); 
             
-            List<Tuple<int, int>> visited = new List<Tuple<int, int>>();
+            HashSet<Tuple<int, int>> visited = new HashSet<Tuple<int, int>>();
             Dictionary<Tuple<int, int>,Tuple<int, int>> path = new Dictionary<Tuple<int, int>,Tuple<int, int>>();
             visited.Add(astronautStartPosition);
             
