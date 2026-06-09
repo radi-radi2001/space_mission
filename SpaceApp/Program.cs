@@ -210,23 +210,28 @@ namespace SpaceApp
             smtpObj.UseDefaultCredentials = false;
             NetworkCredential basicAuthenticationInfo = new NetworkCredential(senderEmail, senderPassword);
             smtpObj.Credentials = basicAuthenticationInfo;
-    
-            
-            MailAddress from = new MailAddress(senderEmail, senderEmail);
-            MailAddress to = new MailAddress(receiverEmail,receiverEmail);
-            MailMessage myMail = new MailMessage(from, to);
 
-            // set subject and encoding
-            myMail.Subject = "Space Game Hitachi something";
-            myMail.SubjectEncoding = Encoding.UTF8;
+            try
+            {
+                MailAddress from = new MailAddress(senderEmail, senderEmail);
+                MailAddress to = new MailAddress(receiverEmail, receiverEmail);
+                MailMessage myMail = new MailMessage(from, to);
 
-            // set body-message and encoding
-            myMail.Body = PrintForEachAstronautInOrder(astronautsByStepsShortestPath).ToString();
-            myMail.BodyEncoding = Encoding.UTF8;
-            // text or html
-            myMail.IsBodyHtml = false;
+                // set subject and encoding
+                myMail.Subject = "Space Game Hitachi something";
+                myMail.SubjectEncoding = Encoding.UTF8;
 
-            smtpObj.Send(myMail);
+                // set body-message and encoding
+                myMail.Body = PrintForEachAstronautInOrder(astronautsByStepsShortestPath).ToString();
+                myMail.BodyEncoding = Encoding.UTF8;
+                // text or html
+                myMail.IsBodyHtml = false;
+
+                smtpObj.Send(myMail);
+            }catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 }
